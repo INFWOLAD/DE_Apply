@@ -1,5 +1,10 @@
 """
-    2023-3-8 22:36
+    2023-3-8 22:36 Start analysis
+    2023-3-9 23:49 Start programming
+    2023-3-9 01:23 Finish Core
+    2023-3-9 15:39 Start adding applications
+    2023-3-9 16:06 Finish adding
+    2023-3-9 18:08 Fixed some bugs
     This program is just for the person who needs to solve their own problems.
     Please do not use this program for others.
     There may be some errors using this program because of my fucking abilities.
@@ -14,6 +19,7 @@ import requests
 import urllib3
 
 
+# This function can be replaced by email send-robots.
 def send_to_wecom(text, wecom_cid, wecom_aid, wecom_secret, wecom_touid):
     get_token_url = f"https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={wecom_cid}&corpsecret={wecom_secret}"
     response = requests.get(get_token_url).content
@@ -35,18 +41,20 @@ def send_to_wecom(text, wecom_cid, wecom_aid, wecom_secret, wecom_touid):
         return False
 
 
+# Read the information from config.ini (convenient for others).
 def get_config():
     pre_dir = os.path.split(os.path.realpath(__file__))[0]
     config_path = os.path.join(pre_dir, 'config.ini')
     print(config_path)
     conf = configparser.RawConfigParser()
     conf.read(config_path)
-    wecom_config = conf.items('Wecom')
-    user_config = conf.items('User')
-    other_config = conf.items('Other')
-    return wecom_config, user_config, other_config
+    wecom = conf.items('Wecom')
+    user = conf.items('User')
+    other = conf.items('Other')
+    return wecom, user, other
 
 
+# This is the first request getting every section's content on the first page.
 def first_request():
     try:
         response = requests.get(
@@ -75,12 +83,13 @@ def first_request():
         # print('Response HTTP Response Body: {content}'.format(
         #     content=response.json()))
         return response.json()[int(item_num)]
-        # return response.json()[1]
+        # Getting No.15 item is the normal function of it.
 
     except requests.exceptions.RequestException:
         print('HTTP Request failed')
 
 
+# Getting some items' values is the function of it.
 def second_request():
     try:
         response = requests.get(
@@ -113,14 +122,18 @@ def second_request():
         # print('Response HTTP Response Body: {content}'.format(
         #     content=response.json()))
         return response.json()[0]
+        # [{}] >> {}
+
     except requests.exceptions.RequestException:
         print('HTTP Request failed')
 
 
+# By getting the information via the first request, now this function tries to know if there is a position to apply.
 def end_get(date, sid, duration, appfuture, appdeadline, appdeadlinewm, msdcm):
     try:
         response = requests.get(
             url="https://www.qtermin.de/api/timeslots",
+            # If some params is lost, you can modify it by crossing params.
             params={
                 "date": date,
                 "serviceid": sid,
@@ -165,10 +178,12 @@ def end_get(date, sid, duration, appfuture, appdeadline, appdeadlinewm, msdcm):
         # print('Response HTTP Response Body: {content}'.format(
         #     content=response.json()))
         return response.json()
+    #     Here just one list.
     except requests.exceptions.RequestException:
         print('HTTP Request failed')
 
 
+# Outstanding module to operate all requests of getting positions' number.
 def get_set():
     try:
         first_content = first_request()
@@ -186,6 +201,7 @@ def get_set():
         return True, end_content, first_content, second_content
 
 
+# Only run when there is a position. It can operate every date.
 def get_date_detail(date, sid, duration, appfuture, appdeadline, msdcm, appdeadlinewm):
     try:
         response = requests.get(
@@ -239,6 +255,7 @@ def get_date_detail(date, sid, duration, appfuture, appdeadline, msdcm, appdeadl
         print('HTTP Request failed')
 
 
+# Get the location of the date we chose.(No.1 normally)
 def get_location(calendarid):
     try:
         response = requests.get(
@@ -275,6 +292,7 @@ def get_location(calendarid):
         print('HTTP Request failed')
 
 
+# This function will apply for you by using the information in the configuration.
 def submit_app(sid, servicetext, inclsg_text, first_name, last_name, email, birthday, street, zipcode, city, phone,
                gender, calendarname, start, end, calendarid, back_street, uuid, servicescapacity,
                servicescapacitydetails):
@@ -327,52 +345,66 @@ def submit_app(sid, servicetext, inclsg_text, first_name, last_name, email, birt
         print('HTTP Request failed')
 
 
+# Because of the complex steps of submitting, we use an outstanding model here.
+def apply():
+    try:
+        first_name, last_name, email, birthday, street, zipcode, city, phone, gender = list(zip(*user_config))[1]
+        appoint_date = get_date_detail(end_content[0]['start'][0:10], first_content['sid'],
+                                       first_content['duration'], second_content['appfuture'],
+                                       second_content['appdeadline'], second_content['msdcm'],
+                                       second_content['appdeadlinewm'])
+        location_data = get_location(appoint_date[0]['calendarid'])
+        appoint_end = submit_app(first_content['sid'], first_content['s'] + " (1)",
+                                 first_content['sg'] + '<br>' + first_content['s'] + " (1)", first_name,
+                                 last_name,
+                                 email, birthday, street, zipcode, city, phone, gender,
+                                 appoint_date[0]['calendarname'], appoint_date[0]['start'],
+                                 appoint_date[0]['end'],
+                                 appoint_date[0]['calendarid'], location_data[0]['street'], uuid,
+                                 {first_content['sid']: "1"}, first_content['s'] + '%091%0D%0A')
+        if appoint_end['StatusMsg'] == 'Appointment created successfully!':
+            outcome = '📤已完成预约>>相关信息如下：\n地址：' + appoint_date[0]['street'] + appoint_date[0]['zip'] + \
+                      appoint_date[0]['city'] + '\nTelephone:' + appoint_date[0][
+                          'telephone'] + '\nBuchungsreferenz：' + appoint_end['AdditionalInformation']
+            print(outcome)
+            send_to_wecom(outcome, wecom_cid, wecom_aid, wecom_secret, wecom_touid)
+            return False
+    #     Retry applying.
+    except:
+        print('❌尝试预约但预约失败')
+        send_to_wecom('🔔尝试预约但预约失败，请手动预约', wecom_cid, wecom_aid, wecom_secret, wecom_touid)
+        return True
+#     Not retry.
+
+
 if __name__ == '__main__':
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     wecom_config, user_config, other_config = get_config()
+    # Using zip to get the second parameter isn't recommend way! But I like it.
     wecom_cid, wecom_aid, wecom_secret, wecom_touid = list(zip(*wecom_config))[1]
     item_num, uuid = list(zip(*other_config))[1]
     active_num = True
+    retry_apply = False
     print('📹预约监控已启动')
-    test = send_to_wecom('📹预约监控已启动', wecom_cid, wecom_aid, wecom_secret, wecom_touid)
-    print(test)
-    while active_num:
+    send_to_wecom('📹预约监控已启动', wecom_cid, wecom_aid, wecom_secret, wecom_touid)
+    while active_num or retry_apply:
         err_info, end_content, first_content, second_content = get_set()
         if len(end_content) != 0 and err_info:
             msg = '✅存在名额，正在自动预约！详细日期如下：\n'
+            # Loop to get all dates.
             for i in end_content:
                 msg = msg + i['start'][0:10] + '\n'
             print(msg)
             # send_to_wecom(msg, wecom_cid, wecom_aid, wecom_secret, wecom_touid)
             send_to_wecom(msg, wecom_cid, wecom_aid, wecom_secret, wecom_touid)
             print('🛠正在尝试预约...')
-            try:
-                first_name, last_name, email, birthday, street, zipcode, city, phone, gender = list(zip(*user_config))[1]
-                appoint_date = get_date_detail(end_content[0]['start'][0:10], first_content['sid'],
-                                               first_content['duration'], second_content['appfuture'],
-                                               second_content['appdeadline'], second_content['msdcm'],
-                                               second_content['appdeadlinewm'])
-                location_data = get_location(appoint_date[0]['calendarid'])
-                appoint_end = submit_app(first_content['sid'], first_content['s'] + " (1)",
-                                         first_content['sg'] + '<br>' + first_content['s'] + " (1)", first_name,
-                                         last_name,
-                                         email, birthday, street, zipcode, city, phone, gender,
-                                         appoint_date[0]['calendarname'], appoint_date[0]['start'],
-                                         appoint_date[0]['end'],
-                                         appoint_date[0]['calendarid'], location_data[0]['street'], uuid,
-                                         {first_content['sid']: "1"}, first_content['s'] + '%091%0D%0A')
-                if appoint_end['StatusMsg'] == 'Appointment created successfully!':
-                    outcome = '📤已完成预约>>相关信息如下：\n地址：' + appoint_date[0]['street'] + appoint_date[0]['zip'] + \
-                              appoint_date[0]['city'] + '\nTelephone:' + appoint_date[0][
-                                  'telephone'] + '\nBuchungsreferenz：' + appoint_end['AdditionalInformation']
-                    print(outcome)
-                    send_to_wecom(outcome, wecom_cid, wecom_aid, wecom_secret, wecom_touid)
-            except:
-                print('❌尝试预约但预约失败')
-                send_to_wecom('🔔尝试预约但预约失败，请手动预约', wecom_cid, wecom_aid, wecom_secret, wecom_touid)
+            retry_apply = apply()
+            # If there are something wrong, try to resend.
             active_num = False
         elif err_info:
             print(str(datetime.now())[0:19] + '>>>✔️仍然无可预约名额')
+            retry_apply = False
         else:
             print("❌错误或手动终止！请及时检查！")
             active_num = False
+            retry_apply = False
