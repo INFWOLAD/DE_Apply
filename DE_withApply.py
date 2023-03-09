@@ -405,6 +405,7 @@ if __name__ == '__main__':
             print(str(datetime.now())[0:19] + '>>>✔️仍然无可预约名额')
             retry_apply = False
         else:
-            print("❌错误或手动终止！请及时检查！")
             active_num = False
             retry_apply = False
+    print("💤程序已停止，请手动重启！")
+    send_to_wecom("💤程序已停止，请手动重启！", wecom_cid, wecom_aid, wecom_secret, wecom_touid)
