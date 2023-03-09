@@ -193,7 +193,7 @@ def get_set():
         # If the parameters isn't permanent, need to add things here.
         end_content = end_get(ymd, first_content['sid'], first_content['duration'], second_content['appfuture'],
                               second_content['appdeadline'], second_content['appdeadlinewm'], second_content['msdcm'])
-        # print(end_content)
+        print(end_content)
     except:
         send_to_wecom("⚠️德国注册监控出错！", wecom_cid, wecom_aid, wecom_secret, wecom_touid)
         return False, 'error', 'error', 'error'
@@ -346,13 +346,14 @@ def submit_app(sid, servicetext, inclsg_text, first_name, last_name, email, birt
 
 
 # Because of the complex steps of submitting, we use an outstanding model here.
-def apply():
+def apply(retry_time):
     try:
         first_name, last_name, email, birthday, street, zipcode, city, phone, gender = list(zip(*user_config))[1]
         appoint_date = get_date_detail(end_content[0]['start'][0:10], first_content['sid'],
                                        first_content['duration'], second_content['appfuture'],
                                        second_content['appdeadline'], second_content['msdcm'],
                                        second_content['appdeadlinewm'])
+        # print(appoint_date)
         location_data = get_location(appoint_date[0]['calendarid'])
         appoint_end = submit_app(first_content['sid'], first_content['s'] + " (1)",
                                  first_content['sg'] + '<br>' + first_content['s'] + " (1)", first_name,
@@ -362,19 +363,22 @@ def apply():
                                  appoint_date[0]['end'],
                                  appoint_date[0]['calendarid'], location_data[0]['street'], uuid,
                                  {first_content['sid']: "1"}, first_content['s'] + '%091%0D%0A')
+        # print(appoint_end)
+        # print(appoint_end['StatusMsg'])
         if appoint_end['StatusMsg'] == 'Appointment created successfully!':
-            outcome = '📤已完成预约>>相关信息如下：\n地址：' + appoint_date[0]['street'] + appoint_date[0]['zip'] + \
-                      appoint_date[0]['city'] + '\nTelephone:' + appoint_date[0][
-                          'telephone'] + '\nBuchungsreferenz：' + appoint_end['AdditionalInformation']
+            outcome = '📤已完成预约>>相关信息如下：\nBuchungsreferenz：' + appoint_end['AdditionalInformation']
             print(outcome)
             send_to_wecom(outcome, wecom_cid, wecom_aid, wecom_secret, wecom_touid)
-            return False
-    #     Retry applying.
+            return False, retry_time
+        else:
+            print('❌尝试预约但预约失败，重试中')
+            retry_time += 1
+            return True, retry_time
     except:
-        print('❌尝试预约但预约失败')
-        send_to_wecom('🔔尝试预约但预约失败，请手动预约', wecom_cid, wecom_aid, wecom_secret, wecom_touid)
-        return True
-#     Not retry.
+        print('预约存在问题')
+        retry_time += 1
+        return True, retry_time
+    #     Retry applying.
 
 
 if __name__ == '__main__':
@@ -385,27 +389,36 @@ if __name__ == '__main__':
     item_num, uuid = list(zip(*other_config))[1]
     active_num = True
     retry_apply = False
+    retry_time = 0
     print('📹预约监控已启动')
     send_to_wecom('📹预约监控已启动', wecom_cid, wecom_aid, wecom_secret, wecom_touid)
-    while active_num or retry_apply:
+    while (active_num or retry_apply) and retry_time < 2:
+        # print('在循环中...')
+        now_time = datetime.now()
+        # if now_time.minute == 0:
+        #     send_to_wecom("仍在监控中", wecom_cid, wecom_aid, wecom_secret, wecom_touid)
         err_info, end_content, first_content, second_content = get_set()
         if len(end_content) != 0 and err_info:
-            msg = '✅存在名额，正在自动预约！详细日期如下：\n'
+            msg = '✅存在名额，正在自动预约！详细日期如下：'
+            # print(msg)
             # Loop to get all dates.
             for i in end_content:
-                msg = msg + i['start'][0:10] + '\n'
+                msg = msg + '\n' + i['start'][0:10]
             print(msg)
             # send_to_wecom(msg, wecom_cid, wecom_aid, wecom_secret, wecom_touid)
             send_to_wecom(msg, wecom_cid, wecom_aid, wecom_secret, wecom_touid)
             print('🛠正在尝试预约...')
-            retry_apply = apply()
+            retry_apply = apply(retry_time)
             # If there are something wrong, try to resend.
             active_num = False
         elif err_info:
-            print(str(datetime.now())[0:19] + '>>>✔️仍然无可预约名额')
+            print(str(now_time)[0:19] + '>>>✔️仍然无可预约名额')
             retry_apply = False
         else:
+            # print('正在退出循环！')
             active_num = False
             retry_apply = False
+    if retry_time > 1:
+        send_to_wecom('🔔尝试预约但预约失败，请手动预约', wecom_cid, wecom_aid, wecom_secret, wecom_touid)
     print("💤程序已停止，请手动重启！")
     send_to_wecom("💤程序已停止，请手动重启！", wecom_cid, wecom_aid, wecom_secret, wecom_touid)
