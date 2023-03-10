@@ -5,10 +5,10 @@ import requests
 
 def get_request(url, params, headers):
     try:
-        response = requests.get(url=url, params=params, headers=headers)
+        response = requests.get(url=url, params=params, headers=headers, timeout=4)
         status_code = response.status_code
         return response, status_code
-    except requests.exceptions.RequestException:
+    except:
         print('HTTP Request failed')
         return None, 999
 
@@ -63,6 +63,7 @@ def main(item_num):
     second_status = 0
     retry_count = 0
     while first_status + second_status != 400 and retry_count < 2:
+        retry_count += 1
         first_response, first_status = get_request(
             "https://www.qtermin.de/api/servicegroupservice",
             {
@@ -106,9 +107,10 @@ def main(item_num):
                 "webid": "qtermin-stadt-duisburg-abh-sued",
                 "Host": "www.qtermin.de",
             })
-
-    position_data, end_status = get_position(first_response.json()[int(item_num)], second_response.json()[0])
-
+    try:
+        position_data, end_status = get_position(first_response.json()[int(item_num)], second_response.json()[0])
+    except:
+        end_status = 0
     if end_status == 200:
         # print('正确获取信息')
         return True, position_data.json(), first_response.json()[int(item_num)], second_response.json()[0]

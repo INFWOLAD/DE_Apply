@@ -1,9 +1,19 @@
 import requests
 
 
-def get_request(url, params, headers, data):
+def get_request(url, params, headers):
     try:
-        response = requests.get(url=url, params=params, headers=headers, data=data)
+        response = requests.get(url=url, params=params, headers=headers, timeout=4)
+        status_code = response.status_code
+        return response, status_code
+    except:
+        print('HTTP Request failed')
+        return None, 999
+
+
+def post_request(url, params, headers, data):
+    try:
+        response = requests.post(url=url, params=params, headers=headers, data=data)
         status_code = response.status_code
         return response, status_code
     except requests.exceptions.RequestException:
@@ -53,7 +63,6 @@ def main(position_date, first_content, second_content, first_name, last_name, em
             "sec-ch-ua-platform": "\"macOS\"",
             "webid": "qtermin-stadt-duisburg-abh-sued",
         },
-        None
     )
 
     location_info, location_status = get_request(
@@ -79,7 +88,6 @@ def main(position_date, first_content, second_content, first_name, last_name, em
             "sec-ch-ua-platform": "\"macOS\"",
             "webid": "qtermin-stadt-duisburg-abh-sued",
         },
-        None
     )
 
     if data_status + location_status == 400:
@@ -107,7 +115,7 @@ def main(position_date, first_content, second_content, first_name, last_name, em
                       f'&capused=false&capmaxused=30&customerconfirm=true&calselid=-1&lnm=1&emailm=1&storeip=false&apw' \
                       f'=false '
 
-        appointment_info, appointment_status = get_request(
+        appointment_info, appointment_status = post_request(
             "https://www.qtermin.de/api/appointment",
             {
                 "Host": "www.qtermin.de",
