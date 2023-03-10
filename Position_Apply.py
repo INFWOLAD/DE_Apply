@@ -3,7 +3,7 @@ import requests
 
 def get_request(url, params, headers):
     try:
-        response = requests.get(url=url, params=params, headers=headers, timeout=4)
+        response = requests.get(url=url, params=params, headers=headers, verify=False, timeout=4)
         status_code = response.status_code
         return response, status_code
     except:
@@ -13,7 +13,7 @@ def get_request(url, params, headers):
 
 def post_request(url, params, headers, data):
     try:
-        response = requests.post(url=url, params=params, headers=headers, data=data)
+        response = requests.post(url=url, params=params, headers=headers, verify=False, data=data)
         status_code = response.status_code
         return response, status_code
     except requests.exceptions.RequestException:

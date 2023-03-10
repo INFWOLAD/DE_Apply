@@ -5,7 +5,7 @@ import requests
 
 def get_request(url, params, headers):
     try:
-        response = requests.get(url=url, params=params, headers=headers, timeout=4)
+        response = requests.get(url=url, params=params, headers=headers, verify=False, timeout=4)
         status_code = response.status_code
         return response, status_code
     except:
