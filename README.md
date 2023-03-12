@@ -6,9 +6,9 @@
 
 如需使用该脚本，请按照如下步骤：
 
-1. 请填写`config.ini`中的值。如果您不想使用企业微信进行推送，可以吧`send_to_wecom()`整体替换为邮箱服务。不影响核心功能。
+1. 请填写`config_template.ini`中的值，并将文件重命名为`config.ini`。如果您不想使用企业微信进行推送，请将其中的`wecom_on`设置为False，不影响核心功能。
 2. 运行`Core.py`。请确保`Get_Position.py`， `Position_Apply.py` 以及`config.ini`在同一目录。
-3. 当出现名额会推送给你。
+3. 当出现名额会推送（控制台显示）给你。
 
 另外请注意：合理添加time.sleep()进行缓冲。
 
