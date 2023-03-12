@@ -81,7 +81,7 @@ if __name__ == '__main__':
             print(str(datetime.now())[0:19] + '>>>✔️仍然无可预约名额')
     if Get_status is not True:
         print(str(datetime.now())[0:19] + '⚠️多次获取位置信息失败，已退出')
-        send_to_wecom('⚠️多次获取位置信息失败，已退出', wecom_cid, wecom_aid, wecom_secret, 'YanGen') if wecom_on
+        send_to_wecom('⚠️多次获取位置信息失败，已退出', wecom_cid, wecom_aid, wecom_secret, 'YanGen') if wecom_on else None
         sys.exit()
     else:
         print(str(datetime.now())[0:19] + '📖正在尝试预约...')
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     if position_status:
         outcome = '📤已完成预约>>相关信息如下：\nBuchungsreferenz：' + appointment_info['AdditionalInformation']
         print(str(datetime.now())[0:19] + outcome)
-        send_to_wecom(outcome, wecom_cid, wecom_aid, wecom_secret, wecom_touid) if wecom_on
+        send_to_wecom(outcome, wecom_cid, wecom_aid, wecom_secret, wecom_touid) if wecom_on else None
     else:
         print(str(datetime.now())[0:19] + '❌尝试预约但预约失败，请手动尝试！')
-        send_to_wecom('🗓自动预约失败，请手动预约！', wecom_cid, wecom_aid, wecom_secret, wecom_touid) if wecom_on
+        send_to_wecom('🗓自动预约失败，请手动预约！', wecom_cid, wecom_aid, wecom_secret, wecom_touid) if wecom_on else None
