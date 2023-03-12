@@ -53,7 +53,7 @@ def replacer(n):
 
 if __name__ == '__main__':
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    print(str(datetime.now())[0:19] + '📷监控程序启动中...')
+    print(str(datetime.now())[0:19] + '>>>📷监控程序启动中...')
     wecom_config, user_config = get_config()
     wecom_on, wecom_cid, wecom_aid, wecom_secret, wecom_touid, item_num = list(zip(*wecom_config))[1]
     first_name, last_name, email, birthday, street, zipcode, city, phone, gender = list(zip(*user_config))[1]
@@ -66,7 +66,7 @@ if __name__ == '__main__':
             time.sleep(10)
         if get_fs_status:
             break
-    print(str(datetime.now())[0:19] + '📸启动成功，正在监控预约名额...')
+    print(str(datetime.now())[0:19] + '>>>📸启动成功')
     Get_status = False
     position_date = ''
     try_again = 0
@@ -78,21 +78,19 @@ if __name__ == '__main__':
         elif position_date:
             break
         else:
-            print(str(datetime.now())[0:19] + '>>>✔️仍然无可预约名额')
+            try_again = 0
+            print(str(datetime.now())[0:19] + '>>>🔘仍然无可预约名额')
     if Get_status is not True:
-        print(str(datetime.now())[0:19] + '⚠️多次获取位置信息失败，已退出')
-        send_to_wecom('⚠️多次获取位置信息失败，已退出', wecom_cid, wecom_aid, wecom_secret, 'YanGen') if wecom_on else None
+        print(str(datetime.now())[0:19] + '>>>⚠️网络连接失败，已退出')
+        send_to_wecom('⚠️网络连接失败，已退出', wecom_cid, wecom_aid, wecom_secret, 'YanGen') if wecom_on else None
         sys.exit()
     else:
-        print(str(datetime.now())[0:19] + '📖正在尝试预约...')
+        print(str(datetime.now())[0:19] + '>>>📖正在尝试预约...')
         send_to_wecom('✅发现预约位置，正在自动预约...', wecom_cid, wecom_aid, wecom_secret, wecom_touid)
         position_status, appointment_info = Position_Apply.main(position_date, first_response, second_response,
                                                                 first_name, last_name, email, birthday, street, zipcode,
                                                                 city, phone, gender, uuid)
-    if position_status:
-        outcome = '📤已完成预约>>相关信息如下：\nBuchungsreferenz：' + appointment_info['AdditionalInformation']
-        print(str(datetime.now())[0:19] + outcome)
-        send_to_wecom(outcome, wecom_cid, wecom_aid, wecom_secret, wecom_touid) if wecom_on else None
-    else:
-        print(str(datetime.now())[0:19] + '❌尝试预约但预约失败，请手动尝试！')
-        send_to_wecom('🗓自动预约失败，请手动预约！', wecom_cid, wecom_aid, wecom_secret, wecom_touid) if wecom_on else None
+    outcome = str(datetime.now())[0:19] + '>>>📤已完成预约\n相关信息如下：\nBuchungsreferenz：' + appointment_info[
+        'AdditionalInformation'] if position_status else str(datetime.now())[0:19] + '>>>❌尝试预约但预约失败，请手动尝试！ '
+    print(outcome)
+    send_to_wecom(outcome, wecom_cid, wecom_aid, wecom_secret, wecom_touid) if wecom_on else None
