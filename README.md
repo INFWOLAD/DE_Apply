@@ -7,7 +7,6 @@
 如需使用该脚本，请按照如下步骤：
 
 1. 请填写`config.ini`中的值。如果您不想使用企业微信进行推送，可以吧`send_to_wecom()`整体替换为邮箱服务。不影响核心功能。
-   其中的uuid请使用uuid.js生成，随后填写到ini中。
 2. 运行`Core.py`。请确保`Get_Position.py`， `Position_Apply.py` 以及`config.ini`在同一目录。
 3. 当出现名额会推送给你。
 
