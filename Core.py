@@ -37,7 +37,7 @@ def send_to_wecom(text, wecom_cid, wecom_aid, wecom_secret, wecom_touid):
 def get_config():
     pre_dir = os.path.split(os.path.realpath(__file__))[0]
     config_path = os.path.join(pre_dir, 'config.ini')
-    print(config_path)
+    # print(config_path)
     conf = configparser.RawConfigParser()
     conf.read(config_path)
     wecom = conf.items('WecomItem')
@@ -66,7 +66,7 @@ if __name__ == '__main__':
             time.sleep(10)
         if get_fs_status:
             break
-    print(str(datetime.now())[0:19] + '>>>📸启动成功')
+    print(str(datetime.now())[0:19] + '>>>📸启动成功，Ver Mar.12')
     Get_status = False
     position_date = ''
     try_again = 0
