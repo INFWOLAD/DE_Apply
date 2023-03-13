@@ -5,17 +5,17 @@ def get_request(url, params, headers):
     try:
         response = requests.get(url=url, params=params, headers=headers, verify=False, timeout=4)
         status_code = response.status_code
-        return response, status_code
+        return response.json(), status_code
     except:
         print('HTTP Request failed')
         return None, 999
 
 
-def post_request(url, params, headers, data):
+def post_request(url, headers, data):
     try:
-        response = requests.post(url=url, params=params, headers=headers, verify=False, data=data)
+        response = requests.post(url=url, headers=headers, data=data, verify=False)
         status_code = response.status_code
-        return response, status_code
+        return response.json(), status_code
     except requests.exceptions.RequestException:
         print('HTTP Request failed')
         return None, 999
@@ -68,7 +68,7 @@ def main(position_date, first_content, second_content, first_name, last_name, em
     location_info, location_status = get_request(
         "https://www.qtermin.de/api/calendar",
         {
-            "calendarid": position_date[0]['calendarid'],
+            "calendarid": appoint_date[0]['calendarid'],
             "companydataonly": "1",
         }, {
             "Accept": "application/json, text/plain",
@@ -89,6 +89,9 @@ def main(position_date, first_content, second_content, first_name, last_name, em
             "webid": "qtermin-stadt-duisburg-abh-sued",
         },
     )
+
+    print(appoint_date)
+    print(location_info)
 
     if data_status + location_status == 400:
         sid = first_content['sid']
@@ -137,7 +140,7 @@ def main(position_date, first_content, second_content, first_name, last_name, em
                 "Accept-Encoding": "gzip, deflate, br",
                 "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7",
             },
-            data=submit_data
+            submit_data
         )
 
         if appointment_status == 200 and appointment_info['StatusMsg'] == 'Appointment created successfully!':
