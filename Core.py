@@ -3,6 +3,7 @@ import json
 import os
 import random
 import sys
+import threading
 import time
 from datetime import datetime
 
@@ -51,35 +52,77 @@ def replacer(n):
     return hex(i)[2:]
 
 
+# def restarts_end(time_now):
+#     global not_sleep_time
+#     while time_now != '12:02' and time_now != '19:04':
+#         time.sleep(10)
+#     not_sleep_time = False
+
+
+def if_position(is_test=0):
+    global Get_status, position_date
+    try_again = 0
+    interval_time = 0
+    while try_again < 5 and position_date is not True:
+        # lock.acquire()
+        Get_status, position_date = Get_Position.main(first_response, second_response)
+        # lock.release()
+        if position_date == 0:
+            try_again += 1
+            time.sleep(5)
+        elif is_test == 3:
+            interval_time = int(str(datetime.now())[17:19]) - interval_time
+            print(interval_time)
+            try_again += is_test
+        else:
+            try_again = 0
+            print(str(datetime.now())[0:22] + '>>>🔘仍然无可预约名额')
+            # time_now += 1
+    return interval_time
+
+
 if __name__ == '__main__':
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     print(str(datetime.now())[0:19] + '>>>📷监控程序启动中...')
+
     wecom_config, user_config = get_config()
     wecom_on, wecom_cid, wecom_aid, wecom_secret, wecom_touid, item_num = list(zip(*wecom_config))[1]
     first_name, last_name, email, birthday, street, zipcode, city, phone, gender = list(zip(*user_config))[1]
     uuid = ''.join([replacer(c) if c in 'xy' else c for c in 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'])
+
     retry_count = 0
     while retry_count < 2:
         get_fs_status, first_response, second_response = Get_Position.get_fs(item_num)
         if get_fs_status is not True:
             retry_count += 1
             time.sleep(10)
-        if get_fs_status:
+        else:
             break
-    print(str(datetime.now())[0:19] + '>>>📸启动成功，Ver Mar.12')
+
     Get_status = False
     position_date = ''
-    try_again = 0
-    while try_again < 5:
-        Get_status, position_date = Get_Position.main(first_response, second_response)
-        if position_date == 0:
-            try_again += 1
-            time.sleep(5)
-        elif position_date:
-            break
-        else:
-            try_again = 0
-            print(str(datetime.now())[0:19] + '>>>🔘仍然无可预约名额')
+    threads = []
+    # time_now = 0
+    # not_sleep_time = True
+    print(str(datetime.now())[0:19] + '>>>📡正在评估所需并发数...')
+    interval = int(if_position(3)) + 1 if 3 > int(if_position(3)) + 1 > 0 else 3
+    print(str(datetime.now())[0:19] + f'>>>📡并发数将设置为{interval}...')
+
+    # lock = threading.Lock()
+    print(str(datetime.now())[0:19] + '>>>📸启动成功，Ver Mar.17')
+
+    for i in range(int(interval) - 1):
+        t = threading.Thread(target=if_position, daemon=True)
+        threads.append(t)
+        t.start()
+        time.sleep(1)
+    # m = threading.Thread(target=restarts_end, args=(time.strftime('%H:%M', time.localtime()),), daemon=True)
+    # m.start()
+    for t in threads:
+        t.join()
+    # if not_sleep_time is not True:
+    #     print(str(datetime.now())[0:22] + '>>>💤程序进入重启时间')
+    #     sys.exit()
     if Get_status is not True:
         print(str(datetime.now())[0:19] + '>>>⚠️网络连接失败，已退出')
         send_to_wecom('⚠️网络连接失败，已退出', wecom_cid, wecom_aid, wecom_secret, 'YanGen') if wecom_on else None

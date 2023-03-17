@@ -90,8 +90,8 @@ def main(position_date, first_content, second_content, first_name, last_name, em
         },
     )
 
-    print(appoint_date)
-    print(location_info)
+    # print(appoint_date)
+    # print(location_info)
 
     if data_status + location_status == 400:
         sid = first_content['sid']
