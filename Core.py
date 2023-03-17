@@ -52,19 +52,13 @@ def replacer(n):
     return hex(i)[2:]
 
 
-# def restarts_end(time_now):
-#     global not_sleep_time
-#     while time_now != '12:02' and time_now != '19:04':
-#         time.sleep(10)
-#     not_sleep_time = False
-
-
 def if_position(is_test=0):
     global Get_status, position_date
     try_again = 0
     interval_time = 0
-    while try_again < 5 and position_date is not True:
+    while try_again < 5 and position_date == [] and time.strftime('%H:%M', time.localtime()) != '20:26':
         # lock.acquire()
+        # print(position_date)
         Get_status, position_date = Get_Position.main(first_response, second_response)
         # lock.release()
         if position_date == 0:
@@ -72,7 +66,7 @@ def if_position(is_test=0):
             time.sleep(5)
         elif is_test == 3:
             interval_time = int(str(datetime.now())[17:19]) - interval_time
-            print(interval_time)
+            # print(interval_time)
             try_again += is_test
         else:
             try_again = 0
@@ -100,40 +94,42 @@ if __name__ == '__main__':
             break
 
     Get_status = False
-    position_date = ''
+    position_date = []
     threads = []
     # time_now = 0
-    # not_sleep_time = True
     print(str(datetime.now())[0:19] + '>>>📡正在评估所需并发数...')
-    interval = int(if_position(3)) + 1 if 3 > int(if_position(3)) + 1 > 0 else 3
-    print(str(datetime.now())[0:19] + f'>>>📡并发数将设置为{interval}...')
+    interval = int(if_position(3))
+    if interval <= 0:
+        interval_seconds = 1
+    elif interval >= 3:
+        interval_seconds = 3
+    else:
+        interval_seconds = interval
+    print(str(datetime.now())[0:19] + f'>>>📡并发数将设置为{interval_seconds}...')
 
     # lock = threading.Lock()
     print(str(datetime.now())[0:19] + '>>>📸启动成功，Ver Mar.17')
 
-    for i in range(int(interval) - 1):
+    for i in range(int(interval_seconds)):
         t = threading.Thread(target=if_position, daemon=True)
         threads.append(t)
         t.start()
         time.sleep(1)
-    # m = threading.Thread(target=restarts_end, args=(time.strftime('%H:%M', time.localtime()),), daemon=True)
-    # m.start()
     for t in threads:
         t.join()
-    # if not_sleep_time is not True:
-    #     print(str(datetime.now())[0:22] + '>>>💤程序进入重启时间')
-    #     sys.exit()
     if Get_status is not True:
         print(str(datetime.now())[0:19] + '>>>⚠️网络连接失败，已退出')
         send_to_wecom('⚠️网络连接失败，已退出', wecom_cid, wecom_aid, wecom_secret, 'YanGen') if wecom_on else None
         sys.exit()
-    else:
+    elif position_date:
         print(str(datetime.now())[0:19] + '>>>📖正在尝试预约...')
         send_to_wecom('✅发现预约位置，正在自动预约...', wecom_cid, wecom_aid, wecom_secret, wecom_touid)
         position_status, appointment_info = Position_Apply.main(position_date, first_response, second_response,
                                                                 first_name, last_name, email, birthday, street, zipcode,
                                                                 city, phone, gender, uuid)
-    outcome = str(datetime.now())[0:19] + '>>>📤已完成预约\n相关信息如下：\nBuchungsreferenz：' + appointment_info[
-        'AdditionalInformation'] if position_status else str(datetime.now())[0:19] + '>>>❌尝试预约但预约失败，请手动尝试！ '
-    print(outcome)
-    send_to_wecom(outcome, wecom_cid, wecom_aid, wecom_secret, wecom_touid) if wecom_on else None
+        outcome = '>>>📤已完成预约\n相关信息如下：\nBuchungsreferenz：' + appointment_info[
+            'AdditionalInformation'] if position_status else '>>>❌尝试预约但预约失败，请手动尝试！ '
+        print(str(datetime.now())[0:19] + outcome)
+        send_to_wecom(outcome, wecom_cid, wecom_aid, wecom_secret, wecom_touid) if wecom_on else None
+    else:
+        print(str(datetime.now())[0:22] + '>>>💤程序进入重启时间')

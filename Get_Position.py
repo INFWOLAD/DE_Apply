@@ -1,3 +1,4 @@
+from datetime import datetime
 import time
 
 import requests
@@ -107,6 +108,7 @@ def get_fs(item_num):
         time.sleep(2)
         return False, 0, 0
     else:
+        print(str(datetime.now())[0:19] + '>>>🗓您所要预定的是:\n' + first_response.json()[int(item_num)]['s'])
         return True, first_response.json()[int(item_num)], second_response.json()[0]
 
 
