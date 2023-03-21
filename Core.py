@@ -80,7 +80,7 @@ if __name__ == '__main__':
     print(str(datetime.now())[0:19] + '>>>📷监控程序启动中...')
 
     wecom_config, user_config = get_config()
-    wecom_on, wecom_cid, wecom_aid, wecom_secret, wecom_touid, item_num = list(zip(*wecom_config))[1]
+    wecom_on, wecom_cid, wecom_aid, wecom_secret, wecom_touid, item_num, close_multi = list(zip(*wecom_config))[1]
     first_name, last_name, email, birthday, street, zipcode, city, phone, gender = list(zip(*user_config))[1]
     uuid = ''.join([replacer(c) if c in 'xy' else c for c in 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'])
 
@@ -99,16 +99,20 @@ if __name__ == '__main__':
     # time_now = 0
     print(str(datetime.now())[0:19] + '>>>📡正在评估所需并发数...')
     interval = int(if_position(3))
-    if interval <= 0:
+    multi_open = ''
+    if close_multi:
+        interval_seconds = 1
+        multi_open = '您设置了稳定模式，'
+    elif interval <= 0:
         interval_seconds = 1
     elif interval >= 3:
         interval_seconds = 3
     else:
         interval_seconds = interval
-    print(str(datetime.now())[0:19] + f'>>>📡并发数将设置为{interval_seconds}...')
+    print(str(datetime.now())[0:19] + f'>>>📡{multi_open}并发数将设置为{interval_seconds}...')
 
     # lock = threading.Lock()
-    print(str(datetime.now())[0:19] + '>>>📸启动成功，Ver Mar.17')
+    print(str(datetime.now())[0:19] + '>>>📸启动成功，Ver Mar.21')
 
     for i in range(int(interval_seconds)):
         t = threading.Thread(target=if_position, daemon=True)
