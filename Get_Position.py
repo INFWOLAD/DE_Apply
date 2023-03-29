@@ -108,7 +108,7 @@ def get_fs(item_num):
         time.sleep(2)
         return False, 0, 0
     else:
-        print(str(datetime.now())[0:19] + '>>>🗓您所要预定的是:\n' + first_response.json()[int(item_num)]['s'])
+        print(str(datetime.now())[0:19] + '>>>🗓您所要预定的是:\n\n' + first_response.json()[int(item_num)]['s'] + '\n')
         return True, first_response.json()[int(item_num)], second_response.json()[0]
 
 

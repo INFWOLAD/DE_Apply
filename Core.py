@@ -113,7 +113,8 @@ if __name__ == '__main__':
     print(str(datetime.now())[0:19] + f'>>>📡{multi_open}并发数将设置为{interval_seconds}...')
 
     # lock = threading.Lock()
-    print(str(datetime.now())[0:19] + '>>>📸启动成功，Ver Mar.21')
+    print(str(datetime.now())[0:19] + f'>>>📝你所期望的日期为{expect_date_start}至{expect_date_end}')
+    print(str(datetime.now())[0:19] + '>>>📸启动成功，Ver Mar.29\n\n')
 
     for i in range(int(interval_seconds)):
         t = threading.Thread(target=if_position, daemon=True)
