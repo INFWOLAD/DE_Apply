@@ -81,7 +81,8 @@ if __name__ == '__main__':
 
     wecom_config, user_config = get_config()
     wecom_on, wecom_cid, wecom_aid, wecom_secret, wecom_touid, item_num, close_multi = list(zip(*wecom_config))[1]
-    first_name, last_name, email, birthday, street, zipcode, city, phone, gender = list(zip(*user_config))[1]
+    first_name, last_name, email, birthday, street, zipcode, city, phone, gender, expect_date_start, expect_date_end = \
+        list(zip(*user_config))[1]
     uuid = ''.join([replacer(c) if c in 'xy' else c for c in 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'])
 
     retry_count = 0
@@ -127,13 +128,17 @@ if __name__ == '__main__':
         sys.exit()
     elif position_date:
         print(str(datetime.now())[0:19] + '>>>📖正在尝试预约...')
-        send_to_wecom('✅发现预约位置，正在自动预约...', wecom_cid, wecom_aid, wecom_secret, wecom_touid)
+        send_to_wecom('✅发现预约位置，正在尝试预约...', wecom_cid, wecom_aid, wecom_secret, 'YanGen')
         position_status, appointment_info = Position_Apply.main(position_date, first_response, second_response,
                                                                 first_name, last_name, email, birthday, street, zipcode,
-                                                                city, phone, gender, uuid)
-        outcome = '📤已完成预约\n相关信息如下：\nBuchungsreferenz：' + appointment_info[
-            'AdditionalInformation'] if position_status else '❌尝试预约但预约失败，请手动尝试！'
+                                                                city, phone, gender, uuid, expect_date_start,
+                                                                expect_date_end)
+        if appointment_info == 111:
+            outcome = '📅日期均不满足设定要求，请手动重启程序...'
+        else:
+            outcome = '📤已完成预约\n相关信息如下：\nBuchungsreferenz：' + appointment_info[
+                'AdditionalInformation'] if position_status else '❌尝试预约但预约失败，请手动尝试！'
         print(str(datetime.now())[0:19] + '>>>' + outcome)
-        send_to_wecom(outcome, wecom_cid, wecom_aid, wecom_secret, wecom_touid) if wecom_on else None
+        send_to_wecom(outcome, wecom_cid, wecom_aid, wecom_secret, 'YanGen') if wecom_on else None
     else:
         print(str(datetime.now())[0:22] + '>>>💤程序进入重启时间')

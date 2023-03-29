@@ -7,6 +7,7 @@
 1. 请填写`config_template.ini`中的值，并将文件重命名为`config.ini`
    - 如果您不想使用企业微信进行推送，请将其中的`wecom_on`设置为 False，不影响核心功能。
    - 如果您需要使用多线程，请将`close_multi`设置为False。程序会根据您的网络状况自动判断线程数。
+   - 请务必设置期望时间，如果你对时间没有限制，填写一个尽可能大的范围即可。
 2. 运行`Core.py`。请确保`Get_Position.py`， `Position_Apply.py` 以及`config.ini`在同一目录。
 3. 当出现名额会 推送/控制台显示 给你。
 

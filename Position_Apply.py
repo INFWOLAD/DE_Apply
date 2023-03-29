@@ -1,3 +1,5 @@
+import time
+
 import requests
 
 
@@ -22,7 +24,7 @@ def post_request(url, headers, data):
 
 
 def main(position_date, first_content, second_content, first_name, last_name, email, birthday, street, zipcode, city,
-         phone, gender, uuid):
+         phone, gender, uuid, expect_start_date, expect_end_date):
     appoint_date, data_status = get_request(
         "https://www.qtermin.de/api/timeslots",
         {
@@ -90,7 +92,24 @@ def main(position_date, first_content, second_content, first_name, last_name, em
         },
     )
 
-    # print(appoint_date)
+    # print(position_date)
+    start_date_stamp = round(time.mktime(time.strptime(expect_start_date + ' 00:00:00', "%Y-%m-%d %H:%M:%S")))
+    end_date_stamp = round(time.mktime(time.strptime(expect_end_date + ' 00:00:00', "%Y-%m-%d %H:%M:%S")))
+    # print(position_date)
+    pop_items = []
+    for i in range(len(position_date)):
+        exist_date_stamp = round(
+            time.mktime(time.strptime(position_date[i]['start'][0:10] + ' 00:00:00', "%Y-%m-%d %H:%M:%S")))
+        print(start_date_stamp, exist_date_stamp, end_date_stamp)
+        if not (start_date_stamp <= exist_date_stamp <= end_date_stamp):
+            pop_items.append(i)
+    for j in pop_items:
+        position_date.pop(int(j))
+    # print(position_date)
+    if len(position_date) == 0:
+        # print('🕐未发现可用日期，停止预约...')
+        return False, 111
+
     # print(location_info)
 
     if data_status + location_status == 400:
