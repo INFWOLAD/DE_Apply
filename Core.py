@@ -128,7 +128,7 @@ if __name__ == '__main__':
         sys.exit()
     elif position_date:
         print(str(datetime.now())[0:19] + '>>>📖正在尝试预约...')
-        send_to_wecom('✅发现预约位置，正在尝试预约...', wecom_cid, wecom_aid, wecom_secret, 'YanGen')
+        send_to_wecom('✅发现预约位置，正在尝试预约...', wecom_cid, wecom_aid, wecom_secret, wecom_touid)
         position_status, appointment_info = Position_Apply.main(position_date, first_response, second_response,
                                                                 first_name, last_name, email, birthday, street, zipcode,
                                                                 city, phone, gender, uuid, expect_date_start,
@@ -139,6 +139,6 @@ if __name__ == '__main__':
             outcome = '📤已完成预约\n相关信息如下：\nBuchungsreferenz：' + appointment_info[
                 'AdditionalInformation'] if position_status else '❌尝试预约但预约失败，请手动尝试！'
         print(str(datetime.now())[0:19] + '>>>' + outcome)
-        send_to_wecom(outcome, wecom_cid, wecom_aid, wecom_secret, 'YanGen') if wecom_on else None
+        send_to_wecom(outcome, wecom_cid, wecom_aid, wecom_secret, wecom_touid) if wecom_on else None
     else:
         print(str(datetime.now())[0:22] + '>>>💤程序进入重启时间')
